@@ -81,15 +81,12 @@ def main():
         try:
             predictions = model_test.predict(ds_test, steps=int(np.ceil(img_count_test / 32)))
         except Exception as e:
-            #print('model predict failed')
+            print('model predict failed')
             print('predict done')
 
-        # prob_2d, pred_2d = recover_2dimg_from_predictions(args, predictions)
-        pred_2d, prob_2d, mask_image_091_L3, tissue_regions_091_L3 = load_pickles()
-
+        prob_2d, pred_2d = recover_2dimg_from_predictions(args, predictions)
         visualize_pred_comparsion(prob_2d, pred_2d, mask_image_091_L3, tissue_regions_091_L3)
-        # beta_evaluate_result(pred_2d, tissue_regions_091_L3, mask_image_091_L3)
-        evaluate_result(pred_2d, tissue_regions_091_L3, mask_image_091_L3)
+        beta_evaluate_result(pred_2d, tissue_regions_091_L3, mask_image_091_L3)
 
 
 if __name__ == "__main__":

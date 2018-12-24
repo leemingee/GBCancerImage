@@ -481,19 +481,6 @@ def visualize_pred_comparsion(prob_2d, pred_2d, mask_image_091_L3, tissue_region
     plt.title("Predicted Heatmap")
     plt.savefig("comparsion.png")
 
-
-def load_pickles():
-    pickle_off = open('pred.pickle', 'rb')
-    pred_2d = pickle.load(pickle_off)
-    pickle_off = open("prob.pickle", "rb")
-    prob_2d = pickle.load(pickle_off)
-    pickle_off = open("mask_image_091_L3.pickle", "rb")
-    mask_image_091_L3 = pickle.load(pickle_off)
-    pickle_off = open("tissue_regions_091_L3.pickle", "rb")
-    tissue_regions_091_L3 = pickle.load(pickle_off)
-    return pred_2d, prob_2d, mask_image_091_L3, tissue_regions_091_L3
-
-
 def evaluate_result(predictions, tissue_regions, mask_image):
     scale = int(mask_image.shape[0] / predictions.shape[0])
     predictions_scaled = np.kron(predictions, np.ones((scale, scale)))
