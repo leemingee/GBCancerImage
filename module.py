@@ -4,6 +4,7 @@ from tensorflow.keras.applications import VGG16
 from tensorflow.keras import layers, models, optimizers
 import numpy as np
 
+
 # todo https://www.tensorflow.org/tutorials/keras/save_and_restore_models
 # read a nice formed training pipeline
 
@@ -44,7 +45,7 @@ class model1(tf.keras.Model):
         self.summary()
         self.compile(optimizer=tf.train.AdamOptimizer(),
                      loss=tf.keras.losses.sparse_categorical_crossentropy,
-                     shuffle = True)
+                     shuffle=True)
         print('compile done')
 
     def train(self, args):
@@ -71,45 +72,44 @@ class model1(tf.keras.Model):
                 self.save(args.checkpoint_dir, counter)
         '''
 
-
         '''
         example code for training function
         for epoch in range(EPOCHS):
         start = time.time()
-        
+
         hidden = encoder.initialize_hidden_state()
         total_loss = 0
-        
+
         for (batch, (inp, targ)) in enumerate(dataset):
             loss = 0
-            
+
             with tf.GradientTape() as tape:
                 enc_output, enc_hidden = encoder(inp, hidden)
-                
+
                 dec_hidden = enc_hidden
-                
+
                 dec_input = tf.expand_dims([targ_lang.word2idx['<start>']] * BATCH_SIZE, 1)       
-                
+
                 # Teacher forcing - feeding the target as the next input
                 for t in range(1, targ.shape[1]):
                     # passing enc_output to the decoder
                     predictions, dec_hidden, _ = decoder(dec_input, dec_hidden, enc_output)
-                    
+
                     loss += loss_function(targ[:, t], predictions)
-                    
+
                     # using teacher forcing
                     dec_input = tf.expand_dims(targ[:, t], 1)
-            
+
             batch_loss = (loss / int(targ.shape[1]))
-            
+
             total_loss += batch_loss
-            
+
             variables = encoder.variables + decoder.variables
-            
+
             gradients = tape.gradient(loss, variables)
-            
+
             optimizer.apply_gradients(zip(gradients, variables))
-            
+
             if batch % 100 == 0:
                 print('Epoch {} Batch {} Loss {:.4f}'.format(epoch + 1,
                                                              batch,
@@ -117,13 +117,12 @@ class model1(tf.keras.Model):
         # saving (checkpoint) the model every 2 epochs
         if (epoch + 1) % 2 == 0:
           checkpoint.save(file_prefix = checkpoint_prefix)
-        
+
         print('Epoch {} Loss {:.4f}'.format(epoch + 1,
                                             total_loss / N_BATCH))
         print('Time taken for 1 epoch {} sec\n'.format(time.time() - start))
-        
-        '''
 
+        '''
 
     def save(self, checkpoint_dir, step):
         pass
@@ -138,6 +137,7 @@ class model1(tf.keras.Model):
                         os.path.join(checkpoint_dir, model_name),
                         global_step=step)
         '''
+
 
 def modeling(training_data, img_count, args):
     base_model = VGG16(weights='imagenet', include_top=False, input_shape=(128, 128, 3))
@@ -175,18 +175,20 @@ def create_model():
 
     return model1
 
+
 def train_model(args, model, training_data, img_count):
     # include the epoch in the file name. (uses `str.format`)
-    checkpoint_path = args.checkpoint_dir + '\\' + "cp-{epoch:04d}.ckpt"
+    checkpoint_path = args.checkpoint_dir + '/' + "cp-{epoch:04d}.ckpt"
     cp_callback = tf.keras.callbacks.ModelCheckpoint(
         checkpoint_path, verbose=1, save_weights_only=True,
         period=5)
 
     history = model.fit(training_data, epochs=20, callbacks=[cp_callback],
-                         steps_per_epoch=int(np.ceil(img_count / args.BATCH_SIZE)),
-                         verbose=1)
+                        steps_per_epoch=int(np.ceil(img_count / args.BATCH_SIZE)),
+                        verbose=1)
 
     return history, model
+
 
 def restore_model_from_latest_ckpt(args):
     model_test = create_model()

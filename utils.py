@@ -11,9 +11,7 @@ import os
 from PIL import Image
 from skimage.color import rgb2gray
 import tensorflow as tf
-import pickle
-import pandas as pd
-import cv2
+
 
 '''
 ================ data processing ==============
@@ -303,10 +301,10 @@ def sliding_train_data(slide_path, tumor_mask_path,levelNO, num_pixels):
 
 def process_slided_img_to_tf(dataset_dir, levelNO, batch_size):
 
-    ImagePaths_tumor_091_L3 = [dataset_dir + str(levelNO) + '\\' + 'tumor\\' + x for x in
-                               os.listdir(dataset_dir + str(levelNO)  + '\\' + 'tumor\\')]
-    ImagePaths_notumor_091_L3 = [dataset_dir + str(levelNO) + '\\' + 'no_tumor\\' + x for x in
-                                 os.listdir(dataset_dir + str(levelNO)  + '\\' + 'no_tumor\\')]
+    ImagePaths_tumor_091_L3 = [dataset_dir + str(levelNO) + '/' + 'tumor/' + x for x in
+                               os.listdir(dataset_dir + str(levelNO)  + '/' + 'tumor/')]
+    ImagePaths_notumor_091_L3 = [dataset_dir + str(levelNO) + '/' + 'no_tumor/' + x for x in
+                                 os.listdir(dataset_dir + str(levelNO)  + '/' + 'no_tumor/')]
     num_tumor_091_L3 = len(ImagePaths_tumor_091_L3)
     ImagePaths_notumor_091_L3 = ImagePaths_notumor_091_L3[0:num_tumor_091_L3]
     ImagePaths_091_L3 = np.array([str(path) for path in ImagePaths_tumor_091_L3 + ImagePaths_notumor_091_L3])
@@ -334,10 +332,10 @@ def process_slided_img_to_tf(dataset_dir, levelNO, batch_size):
     return ds_091_L3, len(ImagePaths_091_L3)
 
 def process_slided_img_to_XY(dataset_dir, levelNO, batch_size):
-    ImagePaths_tumor_091_L3 = [dataset_dir + str(levelNO) + '\\' + 'tumor\\' + x for x in
-                               os.listdir(dataset_dir + str(levelNO)  + '\\' + 'tumor\\')]
-    ImagePaths_notumor_091_L3 = [dataset_dir + str(levelNO) + '\\' + 'no_tumor\\' + x for x in
-                                 os.listdir(dataset_dir + str(levelNO)  + '\\' + 'no_tumor\\')]
+    ImagePaths_tumor_091_L3 = [dataset_dir + str(levelNO) + '/' + 'tumor/' + x for x in
+                               os.listdir(dataset_dir + str(levelNO)  + '/' + 'tumor/')]
+    ImagePaths_notumor_091_L3 = [dataset_dir + str(levelNO) + '/' + 'no_tumor/' + x for x in
+                                 os.listdir(dataset_dir + str(levelNO)  + '/' + 'no_tumor/')]
     num_tumor_091_L3 = len(ImagePaths_tumor_091_L3)
     ImagePaths_notumor_091_L3 = ImagePaths_notumor_091_L3[0:num_tumor_091_L3]
     ImagePaths_091_L3 = np.array([str(path) for path in ImagePaths_tumor_091_L3 + ImagePaths_notumor_091_L3])
@@ -390,7 +388,6 @@ def process_test_slided_data_to_tf(dataset_dir, level_num_test, BATCH_SIZE):
 
 import numpy as np
 import pandas as pd
-from utils_alpha import *
 
 
 def beta_evaluate_result(predictions, tissue_regions, mask_image):
@@ -412,11 +409,12 @@ def beta_evaluate_result(predictions, tissue_regions, mask_image):
     mask_image = mask_image[tissue_regions == 1]
 
     # get the 4 basic metrics dict
-    alpha_metrics4_sklearn(true_value=mask_image, predicted=predictions_scaled, printout = True)
-    # plt the roc curve
+    metrics_dict = alpha_metrics4_sklearn(true_value=mask_image, predicted=predictions_scaled)
+    print(metrics_dict)
+    # print the roc curve
     alpha_metric_roccurve(true_value=mask_image, predicted=predictions_scaled)
     # print the confusion matrix
-    alpha_metric_cm(true_value=mask_image, predicted=predictions_scaled, printout = True)
+    alpha_metric_cm(true_value=mask_image, predicted=predictions_scaled, printout=False)
 
 def plot_from_history(history1):
     assert isinstance(history1, tf.keras.callbacks.History), "unvalid history of fitting"
@@ -441,9 +439,10 @@ def recover_2dimg_from_predictions(args, test):
     shape0, shape1 = 3840, 3360
 
     img_test_folder = 'tissue_only'
-    data_root = args.dataset_dir + str(args.level_num_test) + '\\' + img_test_folder
-    ImagePaths_test = [data_root + '\\' + x for x in os.listdir(data_root)]
-
+    data_root = args.dataset_dir + str(args.level_num_test) + '/' + img_test_folder
+    ImagePaths_test = [data_root + '/' + x for x in os.listdir(data_root)]
+    # print(len(ImagePaths_test))
+    # print(ImagePaths_test)
     img_num = np.zeros(len(ImagePaths_test))
     for i in range(len(ImagePaths_test)):
         img_num[i] = int(ImagePaths_test[i].strip('.jpg').split('/')[-1].split('_')[-1])
@@ -460,6 +459,7 @@ def recover_2dimg_from_predictions(args, test):
         probabilities[y, x] = test[i][1]
         predictions[y, x] = int(test[i][1] > conf_threshold)
     return probabilities, predictions
+
 
 
 def visualize_pred_comparsion(prob_2d, pred_2d, mask_image_091_L3, tissue_regions_091_L3):
